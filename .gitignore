@@ -1,0 +1,22 @@
+# Virtual environments
+venv/
+.venv/
+
+# Environment variables
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Generated files
+graph.html
+
+# Streamlit cache
+.streamlit/
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store

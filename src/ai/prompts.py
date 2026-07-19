@@ -32,7 +32,25 @@ The JSON must have EXACTLY this structure:
                 "relation": ""
             }
         ]
+    },
+    "research_gaps":[
+    {
+        "title":"",
+        "description":"",
+        "reason":"",
+        "future_direction":"",
+        "difficulty":"Easy"
     }
+],
+"experiment_plan": {
+    "objective": "",
+    "dataset": "",
+    "preprocessing": [],
+    "baseline_models": [],
+    "proposed_model": "",
+    "evaluation_metrics": [],
+    "expected_results": ""
+}
 }
 
 Knowledge Graph Rules:
@@ -43,6 +61,34 @@ Knowledge Graph Rules:
 - No duplicate nodes.
 - Keep node names short (1-3 words).
 - Every edge MUST contain a meaningful relationship.
+Research Gap Rules:
+
+- Identify 3 to 5 meaningful research gaps.
+- Base the gaps on the paper's limitations, future work, methodology, datasets, or unexplored areas.
+- Do not invent unsupported claims.
+- Each gap must include:
+    - title
+    - description
+    - reason
+    - future_direction
+    - difficulty (Easy, Medium, or Hard)
+Experiment Planner Rules:
+
+Based on the paper, generate a realistic experiment plan.
+
+Include:
+
+- objective
+- recommended dataset
+- preprocessing steps
+- baseline models
+- one proposed improved model
+- evaluation metrics
+- expected results
+
+The plan should be practical, technically sound, and directly related to the uploaded paper.
+
+Do not invent unrealistic datasets or methods.
 
 Allowed node types:
 

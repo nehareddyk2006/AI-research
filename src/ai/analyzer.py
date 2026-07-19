@@ -83,5 +83,18 @@ def analyze_paper(text: str) -> dict:
             "edges": []
         }
     )
+    data.setdefault("research_gaps", [])
+    data.setdefault(
+        "experiment_plan",
+        {
+            "objective": "",
+            "dataset": "",
+            "preprocessing": [],
+            "baseline_models": [],
+            "proposed_model": "",
+            "evaluation_metrics": [],
+            "expected_results": ""
+        }
+    )
 
     return data
