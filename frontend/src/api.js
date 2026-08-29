@@ -1,5 +1,4 @@
-const API_BASE_URL = "/api";
-
+const API_BASE_URL = "https://ai-research-apg6.onrender.com";
 export async function analyzePaper(file) {
   const formData = new FormData();
 
