@@ -1,6 +1,3 @@
-from src.rag.chunker import chunk_text
-from src.rag.vector_store import create_vector_store
-from src.rag.chatbot import ask_question
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -78,6 +75,8 @@ async def analyze(file: UploadFile = File(...)):
             status_code=500,
             detail=str(e)
         )
+
+
 @app.post("/chat")
 async def chat(
     file: UploadFile = File(...),
@@ -111,6 +110,10 @@ async def chat(
             FileWrapper(file_bytes)
         )
 
+        from src.rag.chunker import chunk_text
+        from src.rag.vector_store import create_vector_store
+        import src.rag.chatbot
+
         chunks = chunk_text(
             paper.get("text", "")
         )
@@ -119,7 +122,28 @@ async def chat(
             chunks
         )
 
-        answer = ask_question(
+        answer = src.rag.chatbot.ask_question(
+            vector_store,
+            question
+        )
+
+        return {
+            "question": question,
+            "answer": answer
+        }
+
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
+        vector_store = create_vector_store(
+            chunks
+        )
+
+        answer = src.rag.chatbot.ask_question(
             vector_store,
             question
         )
