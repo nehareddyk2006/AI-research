@@ -1,3 +1,4 @@
+
 import os
 
 from dotenv import load_dotenv
@@ -19,26 +20,16 @@ MODEL = os.getenv(
 
 
 def ask_question(vector_store, question):
-    """
-    Answer questions about the uploaded research paper using RAG.
-
-    The vector store retrieves the most relevant sections
-    from the uploaded paper, which are then provided to Gemini.
-    """
 
     print(
         f"RAG: Searching for question: {question}",
         flush=True
     )
 
-    # --------------------------------------------------
-    # Retrieve relevant chunks from the paper
-    # --------------------------------------------------
-
-    docs = vector_store.max_marginal_relevance_search(
+    # Retrieve only the most relevant chunks.
+    docs = vector_store.similarity_search(
         question,
-        k=5,
-        fetch_k=15
+        k=4
     )
 
     print(
@@ -47,14 +38,11 @@ def ask_question(vector_store, question):
     )
 
     if not docs:
-        return (
-            "I couldn't retrieve any relevant sections from "
-            "the uploaded paper. Please try rephrasing your question."
-        )
 
-    # --------------------------------------------------
-    # Build context
-    # --------------------------------------------------
+        return (
+            "I couldn't find relevant information "
+            "in the uploaded paper."
+        )
 
     context = "\n\n".join(
         doc.page_content
@@ -66,73 +54,27 @@ def ask_question(vector_store, question):
         flush=True
     )
 
-    # --------------------------------------------------
-    # Gemini prompt
-    # --------------------------------------------------
-
     prompt = f"""
-You are ResearchWeaver AI, an intelligent research assistant.
+You are ResearchWeaver AI, a research paper assistant.
 
-Your job is to help users understand an uploaded research paper.
+Answer the user's question using the retrieved paper context.
 
-The retrieved context below comes directly from the paper.
+Rules:
+- Treat the paper context as the primary source.
+- Do not invent facts or quotes.
+- If the paper does not directly answer the question,
+  clearly say that and provide a reasonable inference if useful.
+- Keep the answer concise and useful.
+- Use bullets when appropriate.
 
-=========================
-GUIDELINES
-=========================
-
-1. Use the retrieved context as your PRIMARY source.
-
-2. If the answer is explicitly stated in the context,
-answer confidently.
-
-3. If the answer is only partially available,
-provide the best possible answer from the available context.
-
-4. If the paper does not explicitly answer the question,
-use your own research knowledge to provide a helpful inference.
-
-5. Clearly separate:
-
-• Information from the paper
-
-• Your own inference or general research knowledge
-
-6. Never invent quotes.
-
-7. Never claim the paper says something it doesn't.
-
-8. Avoid replying only with:
-
-"I couldn't find that information."
-
-Instead, explain what the paper discusses and provide useful
-inferences whenever appropriate.
-
-9. Keep answers concise but informative.
-
-10. Use bullet points whenever helpful.
-
-=========================
-RETRIEVED CONTEXT
-=========================
-
+PAPER CONTEXT:
 {context}
 
-=========================
-QUESTION
-=========================
-
+QUESTION:
 {question}
 
-=========================
-ANSWER
-=========================
+ANSWER:
 """
-
-    # --------------------------------------------------
-    # Generate Gemini response
-    # --------------------------------------------------
 
     print(
         "RAG: Sending context to Gemini...",
@@ -156,8 +98,8 @@ ANSWER
             return response.text.strip()
 
         return (
-            "I couldn't generate a response for that question. "
-            "Please try asking it differently."
+            "I couldn't generate a response. "
+            "Please try asking the question differently."
         )
 
     except Exception as e:

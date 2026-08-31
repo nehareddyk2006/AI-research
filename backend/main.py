@@ -23,6 +23,7 @@ app.add_middleware(
 
 @app.get("/")
 def root():
+
     return {
         "message": "ResearchWeaver AI API is running",
         "status": "ok",
@@ -31,15 +32,19 @@ def root():
 
 @app.get("/health")
 def health():
+
     return {
         "status": "healthy"
     }
 
 
 @app.post("/analyze")
-async def analyze(file: UploadFile = File(...)):
+async def analyze(
+    file: UploadFile = File(...)
+):
 
     if not file.filename.lower().endswith(".pdf"):
+
         raise HTTPException(
             status_code=400,
             detail="Only PDF files are supported."
@@ -50,6 +55,7 @@ async def analyze(file: UploadFile = File(...)):
         file_bytes = await file.read()
 
         class FileWrapper:
+
             def __init__(self, data):
                 self.data = data
 
@@ -84,12 +90,14 @@ async def chat(
 ):
 
     if not file.filename.lower().endswith(".pdf"):
+
         raise HTTPException(
             status_code=400,
             detail="Only PDF files are supported."
         )
 
     if not question.strip():
+
         raise HTTPException(
             status_code=400,
             detail="Question cannot be empty."
@@ -100,29 +108,58 @@ async def chat(
         file_bytes = await file.read()
 
         class FileWrapper:
+
             def __init__(self, data):
                 self.data = data
 
             def read(self):
                 return self.data
 
+        # -----------------------------------------
+        # Extract paper
+        # -----------------------------------------
+
         paper = extract_pdf(
             FileWrapper(file_bytes)
         )
 
+        # -----------------------------------------
+        # Build chunks
+        # -----------------------------------------
+
         from src.rag.chunker import chunk_text
-        from src.rag.vector_store import create_vector_store
-        import src.rag.chatbot
 
         chunks = chunk_text(
             paper.get("text", "")
         )
 
-        vector_store = create_vector_store(
+        if not chunks:
+
+            raise HTTPException(
+                status_code=400,
+                detail="No readable text was found in the PDF."
+            )
+
+        # -----------------------------------------
+        # Get cached / new vector store
+        # -----------------------------------------
+
+        from src.rag.vector_store import (
+            get_or_create_vector_store
+        )
+
+        vector_store = get_or_create_vector_store(
+            file_bytes,
             chunks
         )
 
-        answer = src.rag.chatbot.ask_question(
+        # -----------------------------------------
+        # Ask chatbot
+        # -----------------------------------------
+
+        from src.rag.chatbot import ask_question
+
+        answer = ask_question(
             vector_store,
             question
         )
@@ -132,28 +169,15 @@ async def chat(
             "answer": answer
         }
 
-    except Exception as e:
-
-        raise HTTPException(
-            status_code=500,
-            detail=str(e)
-        )
-
-        vector_store = create_vector_store(
-            chunks
-        )
-
-        answer = src.rag.chatbot.ask_question(
-            vector_store,
-            question
-        )
-
-        return {
-            "question": question,
-            "answer": answer
-        }
+    except HTTPException:
+        raise
 
     except Exception as e:
+
+        print(
+            f"CHAT ERROR: {e}",
+            flush=True
+        )
 
         raise HTTPException(
             status_code=500,
