@@ -1866,6 +1866,8 @@ function PaperChat({ file }) {
     setLoading(true);
 
     try {
+      console.log("CHAT: askPaper is being called");
+
       const data = await askPaper(
         file,
         trimmedQuestion

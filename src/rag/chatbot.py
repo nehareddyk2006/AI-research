@@ -4,6 +4,8 @@ import os
 from dotenv import load_dotenv
 from google import genai
 
+print("🔥 RESEARCHWEAVER CHATBOT.PY LOADED", flush=True)
+print(f"🔥 CHATBOT FILE: {__file__}", flush=True)
 
 load_dotenv()
 

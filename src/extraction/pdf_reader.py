@@ -1,18 +1,47 @@
-import fitz
+
+import pymupdf
 import re
+
+
+# Maximum amount of text we need for Gemini.
+MAX_TEXT_CHARS = 15000
+
+# Safety limit so extremely large PDFs don't get processed forever.
+MAX_PAGES = 30
 
 
 def extract_pdf(file):
 
-    pdf = fitz.open(
+    pdf = pymupdf.open(
         stream=file.read(),
         filetype="pdf"
     )
 
-    text = ""
+    text_parts = []
 
-    for page in pdf:
-        text += page.get_text()
+    pages_to_process = min(len(pdf), MAX_PAGES)
+
+    for page_index in range(pages_to_process):
+
+        page = pdf[page_index]
+
+        page_text = page.get_text()
+
+        if page_text:
+            text_parts.append(page_text)
+
+        # Stop extracting once we have enough text.
+        current_length = sum(
+            len(part) for part in text_parts
+        )
+
+        if current_length >= MAX_TEXT_CHARS:
+            break
+
+    text = "\n".join(text_parts)
+
+    # Keep the text bounded.
+    text = text[:MAX_TEXT_CHARS]
 
     pages = len(pdf)
 
@@ -103,3 +132,4 @@ def extract_pdf(file):
         "text": text
 
     }
+
