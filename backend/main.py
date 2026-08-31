@@ -1,32 +1,16 @@
-from contextlib import asynccontextmanager
-
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.extraction.pdf_reader import extract_pdf
 from src.ai.analyzer import analyze_paper
-from src.rag.vector_store import get_embedding_model
 
 print("🔥 RESEARCHWEAVER MAIN.PY LOADED", flush=True)
 print(f"🔥 MAIN FILE: {__file__}", flush=True)
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    print("🚀 Loading embedding model at startup...", flush=True)
-
-    # Loads the MiniLM model once when Render boots.
-    get_embedding_model()
-
-    print("✅ Embedding model ready.", flush=True)
-
-    yield
-
 
 app = FastAPI(
     title="ResearchWeaver AI API",
     description="Backend API for ResearchWeaver AI",
     version="1.0.0",
-    lifespan=lifespan,
 )
 
 

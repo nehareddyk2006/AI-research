@@ -1,14 +1,59 @@
-
 import hashlib
+import os
 
+from dotenv import load_dotenv
+from google import genai
 from langchain_community.vectorstores import FAISS
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_core.embeddings import Embeddings
+
+load_dotenv()
+
+
+client = genai.Client(
+    api_key=os.getenv("GEMINI_API_KEY")
+)
+
+
+EMBEDDING_MODEL = "gemini-embedding-001"
+
+_vector_store_cache = {}
+
+
+class GeminiEmbeddings(Embeddings):
+
+    def embed_documents(self, texts):
+
+        print(
+            f"RAG: Embedding {len(texts)} chunks...",
+            flush=True
+        )
+
+        embeddings = []
+
+        for text in texts:
+
+            response = client.models.embed_content(
+                model=EMBEDDING_MODEL,
+                contents=text
+            )
+
+            embeddings.append(
+                response.embeddings[0].values
+            )
+
+        return embeddings
+
+    def embed_query(self, text):
+
+        response = client.models.embed_content(
+            model=EMBEDDING_MODEL,
+            contents=text
+        )
+
+        return response.embeddings[0].values
 
 
 _embedding_model = None
-
-# Cache vector stores by PDF/content hash.
-_vector_store_cache = {}
 
 
 def get_embedding_model():
@@ -18,16 +63,14 @@ def get_embedding_model():
     if _embedding_model is None:
 
         print(
-            "RAG: Loading embedding model...",
+            "RAG: Initializing Gemini embeddings...",
             flush=True
         )
 
-        _embedding_model = HuggingFaceEmbeddings(
-            model_name="sentence-transformers/all-MiniLM-L6-v2"
-        )
+        _embedding_model = GeminiEmbeddings()
 
         print(
-            "RAG: Embedding model loaded.",
+            "RAG: Gemini embeddings ready.",
             flush=True
         )
 
@@ -95,8 +138,6 @@ def get_or_create_vector_store(
         chunks
     )
 
-    # Keep the cache small.
-    # Only retain the most recent 3 papers.
     if len(_vector_store_cache) >= 3:
 
         oldest_key = next(
@@ -107,9 +148,6 @@ def get_or_create_vector_store(
             oldest_key
         ]
 
-    _vector_store_cache[file_hash] = (
-        vector_store
-    )
+    _vector_store_cache[file_hash] = vector_store
 
     return vector_store
-
