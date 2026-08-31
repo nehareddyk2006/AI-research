@@ -37,12 +37,14 @@ def analyze_paper(text: str) -> dict:
     }
     """
 
-    prompt = PAPER_ANALYSIS_PROMPT + text[:30000]
+    prompt = PAPER_ANALYSIS_PROMPT + text[:15000]
 
     response = client.models.generate_content(
         model=MODEL,
         contents=prompt,
     )
+    if not response or not getattr(response, "text", None):
+        raise Exception("Gemini returned an empty response.")
 
     output = response.text.strip()
 
