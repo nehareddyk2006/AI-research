@@ -1,14 +1,30 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.extraction.pdf_reader import extract_pdf
 from src.ai.analyzer import analyze_paper
+from src.rag.vector_store import get_embedding_model
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("🚀 Loading embedding model at startup...", flush=True)
+
+    # Loads the MiniLM model once when Render boots.
+    get_embedding_model()
+
+    print("✅ Embedding model ready.", flush=True)
+
+    yield
 
 
 app = FastAPI(
     title="ResearchWeaver AI API",
     description="Backend API for ResearchWeaver AI",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 
@@ -115,6 +131,8 @@ async def chat(
             def read(self):
                 return self.data
 
+        print("CHAT: PDF received", flush=True)
+
         # -----------------------------------------
         # Extract paper
         # -----------------------------------------
@@ -122,6 +140,8 @@ async def chat(
         paper = extract_pdf(
             FileWrapper(file_bytes)
         )
+
+        print("CHAT: PDF extracted", flush=True)
 
         # -----------------------------------------
         # Build chunks
@@ -132,6 +152,8 @@ async def chat(
         chunks = chunk_text(
             paper.get("text", "")
         )
+
+        print(f"CHAT: {len(chunks)} chunks created", flush=True)
 
         if not chunks:
 
@@ -152,6 +174,8 @@ async def chat(
             file_bytes,
             chunks
         )
+
+        print("CHAT: Vector store ready", flush=True)
 
         # -----------------------------------------
         # Ask chatbot
