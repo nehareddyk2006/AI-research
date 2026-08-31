@@ -15,6 +15,7 @@ client = genai.Client(
 
 
 EMBEDDING_MODEL = "gemini-embedding-001"
+EMBEDDING_BATCH_SIZE = 32
 
 _vector_store_cache = {}
 
@@ -30,15 +31,18 @@ class GeminiEmbeddings(Embeddings):
 
         embeddings = []
 
-        for text in texts:
+        for start in range(0, len(texts), EMBEDDING_BATCH_SIZE):
+
+            batch = texts[start:start + EMBEDDING_BATCH_SIZE]
 
             response = client.models.embed_content(
                 model=EMBEDDING_MODEL,
-                contents=text
+                contents=batch
             )
 
-            embeddings.append(
-                response.embeddings[0].values
+            embeddings.extend(
+                embedding.values
+                for embedding in response.embeddings
             )
 
         return embeddings

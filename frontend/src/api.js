@@ -33,7 +33,6 @@ export async function askPaper(file, question) {
   const formData = new FormData();
 
   formData.append("file", file);
-  formData.append("question", question);
 
   const response = await fetch(
     `${API_BASE_URL}/chat?question=${encodeURIComponent(question)}`,
