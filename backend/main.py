@@ -7,6 +7,8 @@ from src.extraction.pdf_reader import extract_pdf
 from src.ai.analyzer import analyze_paper
 from src.rag.vector_store import get_embedding_model
 
+print("🔥 RESEARCHWEAVER MAIN.PY LOADED", flush=True)
+print(f"🔥 MAIN FILE: {__file__}", flush=True)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
